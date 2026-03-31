@@ -22,7 +22,7 @@ cluster:
     gpuSummary: eyelevel-node
 
 file:
-  customDomain: minio-eyelevel.apps.98155a51-eyelevelai.openshiftpartnerlabs.com
+  customDomain: minio
 
 groundx:
   serviceType: Route
