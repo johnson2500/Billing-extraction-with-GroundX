@@ -81,3 +81,33 @@ extract:
       requests:
         cpu: 1
         memory: 2Gi
+
+# ── Layout inference GPU configuration ─────────────────────────────────
+#
+# To make GroundX use a GPU for layout inference, include this block
+# with nvidia.com/gpu set to '1':
+#
+# layout:
+#   inference:
+#     resources:
+#       limits:
+#         memory: 12Gi
+#         nvidia.com/gpu: '1'
+#       requests:
+#         cpu: 500m
+#         memory: 2Gi
+#         nvidia.com/gpu: '1'
+#
+# To run layout inference without a GPU (CPU-only), set nvidia.com/gpu
+# to '0':
+#
+# layout:
+#   inference:
+#     resources:
+#       limits:
+#         memory: 12Gi
+#         nvidia.com/gpu: '0'
+#       requests:
+#         cpu: 500m
+#         memory: 2Gi
+#         nvidia.com/gpu: '0'
