@@ -304,8 +304,13 @@ notebook:
     enabled: true
     size: 2Gi
   groundx:
-    apiKey: ""            # Set to your GroundX API key
-    endpoint: ""          # e.g. https://api.groundx.ai/api/v1
+    # The API key is read from the eyelevel-secret-credentials Secret
+    # (created by the groundx-secret subchart) — no need to duplicate it here.
+    secretName: "eyelevel-secret-credentials"
+    # GroundX base URL as seen by the notebook.  Set this to the GroundX
+    # OpenShift Route with /api appended, e.g.:
+    #   https://groundx-api-eyelevel.apps.<cluster-domain>/api
+    baseUrl: ""
   minio:
     accessKey: "minio"
     secretKey: "minio123"

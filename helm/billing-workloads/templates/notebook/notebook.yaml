@@ -56,10 +56,13 @@ spec:
           value: /tmp/jupyter/data
         - name: XDG_CACHE_HOME
           value: /tmp/.cache
-        - name: GROUNDX_API_KEY
-          value: {{ .Values.notebook.groundx.apiKey | quote }}
-        - name: GROUNDX_ENDPOINT
-          value: {{ .Values.notebook.groundx.endpoint | quote }}
+        - name: GROUNDX_ADMIN_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.notebook.groundx.secretName | default "eyelevel-secret-credentials" }}
+              key: GROUNDX_ADMIN_API_KEY
+        - name: GROUNDX_BASE_URL
+          value: {{ .Values.notebook.groundx.baseUrl | quote }}
         ports:
         - containerPort: 8888
           name: notebook-port
