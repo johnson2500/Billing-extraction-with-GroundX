@@ -153,7 +153,7 @@ All pods should reach `Running` (or `Completed` for one-shot Jobs).
 
 ### GPU Configuration for Layout Inference
 
-To enable GPU for GroundX layout inference, add the following to `helm/billing-workloads/values.yaml` under `groundx.layout.inference`:
+To disable GPU for GroundX layout inference, add the following to `helm/billing-workloads/values.yaml` under `groundx.layout.inference`:
 
 ```yaml
 layout:
@@ -161,14 +161,14 @@ layout:
     resources:
       limits:
         memory: 12Gi
-        nvidia.com/gpu: '1'
+        nvidia.com/gpu: '0' # <-- Set to 0
       requests:
         cpu: 500m
         memory: 2Gi
-        nvidia.com/gpu: '1'
+        nvidia.com/gpu: '0' # <-- Set to 0
 ```
 
-To run without a GPU (CPU-only), set `nvidia.com/gpu` to `'0'`. See the comments in `values/values.groundx.yaml` for details.
+To run with a GPU (CPU-only), set `nvidia.com/gpu` to `'1'`. See the comments in `values/values.groundx.yaml` for details.
 
 ## Demo GroundX
 
@@ -205,11 +205,12 @@ If you are not using the chart-managed notebook, create a workbench in OpenShift
    - **Version selection**: 2025.2
    - **Container size**: Small
    - **Accelerator**: None
-   - Add environment variables:
+   - Add environment variables IMPORTANT READ:
      - **Type**: Secret → Key / value
        - **Key**: `GROUNDX_ADMIN_API_KEY` — **Value**: `<YOUR_GROUNDX_ADMIN_API_KEY>`
      - **Type**: ConfigMap → Key / value
-       - **Key**: `GROUNDX_BASE_URL` — **Value**: `<GROUNDX_OPENSHIFT_ROUTE>/api`
+       - **Key**: `GROUNDX_BASE_URL` — **Value**: `<GROUNDX_OPENSHIFT_ROUTE>/api`: IMPORTANT: This is set in the `values.yaml` file and needs to have /api appended.
+
    - Click **Create connection**:
      - Select **S3 compatible object storage**
      - **Connection name**: `Models-Storage`

@@ -176,16 +176,16 @@ groundx:
     serviceType: Route
   engines:
     default:
-      engineId: llama-scout-17b
-      reasoningEffort: null
-      vision: false
+      engineId: gpt-5-mini
+      reasoningEffort: low
+      vision: true
   summary:
     existing:
       serviceType: openai-base64
   # ── Layout inference GPU configuration ───────────────────────────────
   #
   # To make GroundX use a GPU for layout inference, add a resources block
-  # under layout.inference with nvidia.com/gpu set to '1':
+  # under layout.inference with nvidia.com/gpu set to '1': (This is the default)
   #
   #   layout:
   #     inference:
@@ -234,18 +234,8 @@ groundx:
   extract:
     enabled: true
     agent:
-      replicas:
-        desired: 1
       enabled: true
-      # To use the deployed Gemma 3 12B from llm-service, set modelId to "llama-scout-17b"
-      # and apiBaseUrl to the gemma-3-12b-it predictor URL (e.g. route or http://gemma-3-12b-it-predictor.<namespace>.svc.cluster.local/v1).
-      modelId: llama-scout-17b
-      apiBaseUrl: https://litellm-prod.apps.maas.redhatworkshops.io/v1
-      serviceType: openai-base64
-      model:
-        reasoningEffort: null
-        kwargs:
-          max_tokens: 2000
+      serviceType: openai
       resources:
         requests:
           cpu: 100m
