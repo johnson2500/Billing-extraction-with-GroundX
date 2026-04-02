@@ -1,3 +1,0 @@
-nodeSelector:
-  node: eyelevel-node
-replicas: 1
