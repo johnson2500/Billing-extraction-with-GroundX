@@ -24,11 +24,7 @@ Extract structured financial and billing data from unstructured documents, such 
   - [Delete](#delete)
 - [References](#references)
 - [Demo billing extraction](#demo-billing-extraction)
-  - [Streamlit UI (recommended)](#streamlit-ui-recommended)
-  - [Optional: OpenShift AI notebook](#optional-openshift-ai-notebook)
-    - [Chart-managed notebook](#chart-managed-notebook)
-    - [Create a workbench manually](#create-a-workbench-manually)
-    - [Run the get_started notebook](#run-the-get_started-notebook)
+  - [Data Extraction UI (recommended)](#data-extraction-ui-recommended)
 - [Technical details](#technical-details)
   - [GPU configuration for GroundX inference](#gpu-configuration-for-groundx-inference)
 - [Tags](#tags)
@@ -41,9 +37,9 @@ This AI quickstart is designed to bypass those hurdles, helping you get up and r
 
 ### What you'll do
 
-1. Deploy the GroundX stack on OpenShift (operators, MinIO, database, GroundX, Streamlit UI, and notebook)
+1. Deploy the GroundX stack on OpenShift (operators, MinIO, database, GroundX, and Streamlit UI)
 2. Verify the deployment — check pods and run **Infrastructure Check** in the UI
-3. Run billing extraction on a sample PDF or image via the Streamlit app (or the `get_started` notebook)
+3. Run billing extraction on a sample PDF or image via the Streamlit app
 4. Inspect structured results (account number, amount due, due date, and related fields) and review job history
 
 ### See it in action
@@ -171,7 +167,7 @@ oc get route -n eyelevel -l app.kubernetes.io/component=frontend \
 
 The URL looks like `https://billing-workloads-frontend-eyelevel.<cluster_domain>/`.
 
-2. Follow the [Streamlit UI walkthrough](#streamlit-ui-recommended) below to run extraction in the app.
+2. Follow the [Data Extraction UI walkthrough](#data-extraction-ui-recommended) below to run extraction in the app.
 
 ![Infrastructure Check in the billing extraction UI](./docs/images/verify-infra.png)
 
@@ -208,7 +204,7 @@ oc delete project eyelevel
 
 ## Demo billing extraction
 
-The primary demo is the Streamlit **Billing Extraction** application deployed with the workloads chart. Use the notebook path only if you prefer Jupyter or need to customize schemas interactively.
+The demo is the Streamlit **Billing Extraction** application deployed with the workloads chart.
 
 ### Data Extraction UI (recommended)
 
