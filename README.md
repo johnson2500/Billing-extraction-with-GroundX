@@ -135,8 +135,11 @@ Edit `helm/billing-workloads/secret.yaml` and set at least these keys under `gro
 
 | Key in `secret.yaml` | What it is | Used by |
 |----------------------|------------|---------|
-| `GROUNDX_ADMIN_API_KEY` | GroundX platform / admin API key | Notebook and Streamlit UI (`GROUNDX_API_KEY` in the pods) |
+| `GROUNDX_ADMIN_API_KEY` | GroundX platform / admin API key | Streamlit UI (`GROUNDX_API_KEY` in the pods) |
 | `GROUNDX_AGENT_API_KEY` | OpenAI-compatible API key (not a placeholder like `sk-CHANGE_ME`) | GroundX layout and extract agents |
+
+> [!IMPORTANT]
+> **`GROUNDX_ADMIN_API_KEY` can be any UUID you choose** — it does not come from GroundX or another provider. Pick any value in UUID format (for example `00000000-0000-0000-0000-000000000001`) and use the same value consistently. Do **not** confuse it with `GROUNDX_AGENT_API_KEY`, which must be a real OpenAI-compatible API key.
 
 No shell environment variables are required for install. Helm merges `secret.yaml` into the chart and creates the `eyelevel-secret-credentials` Kubernetes Secret.
 
