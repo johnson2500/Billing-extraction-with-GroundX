@@ -37,7 +37,7 @@ This AI quickstart is designed to bypass those hurdles, helping you get up and r
 
 ### What you'll do
 
-1. Deploy the GroundX stack on OpenShift (operators, MinIO, database, GroundX, and Streamlit UI)
+1. Deploy the GroundX stack on OpenShift (operators, S4 object storage, database, GroundX, and Streamlit UI)
 2. Verify the deployment — check pods and run **Infrastructure Check** in the UI
 3. Run billing extraction on a sample PDF or image via the Streamlit app
 4. Inspect structured results (account number, amount due, due date, and related fields) and review job history
@@ -82,7 +82,7 @@ The user performing this quickstart should be able to create a project and insta
 | Chart | Required role | Purpose |
 |-------|---------------|---------|
 | `billing-operators` | **cluster-admin** (or equivalent) | Installs operators, storage class, node labels, and SCCs |
-| `billing-workloads` | **admin** (namespace-level) | Deploys GroundX, MinIO tenant, database, UI, and notebook into `eyelevel` |
+| `billing-workloads` | **admin** (namespace-level) | Deploys GroundX, S4 storage, database, UI, and notebook into `groundx` |
 
 > [!NOTE]
 > A single `make -C helm install` runs both charts. Use an account that can install `billing-operators` (typically `cluster-admin`). If operators are already installed cluster-wide, an admin can install only the workloads chart.
@@ -93,10 +93,22 @@ Deployment uses two Helm umbrella charts, installed in sequence through a Makefi
 
 | Chart | Path | Purpose |
 |-------|------|---------|
-| **billing-operators** | `helm/billing-operators/` | Operators and cluster prep (storage class, node labels, Percona operator, MinIO operator, optional Strimzi operator) |
-| **billing-workloads** | `helm/billing-workloads/` | Application workloads (database cluster, MinIO tenant, Kafka cluster, GroundX, Streamlit UI, Jupyter notebook) |
+| **billing-operators** | `helm/billing-operators/` | Operators and cluster prep (storage class, node labels, Percona operator, optional Strimzi operator) |
+| **billing-workloads** | `helm/billing-workloads/` | Application workloads (database cluster, [aws-compatible-storage (S4)](https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/aws-compatible-storage), Kafka cluster, GroundX, Streamlit UI, Jupyter notebook) |
 
 By default, GroundX layout and ranker inference run on **CPU**. Optional GPU settings are documented under [Technical details](#gpu-configuration-for-groundx-inference).
+
+Object storage is provided by the shared **[aws-compatible-storage](https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/aws-compatible-storage)** Helm chart (S4-backed, S3-compatible):
+
+| Consumer | Endpoint / resource |
+|----------|---------------------|
+| In-cluster S3 API | `http://s4:7480` |
+| GroundX (via path proxy) | `http://s4-s3-proxy:7480` |
+| S4 web UI Route | Route name `s4` (port 5000 / `/api`) |
+| Credentials Secret | `s4-credentials` (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`) |
+| Bootstrap buckets | `eyelevel`, `billing-artifacts` (parent Job) |
+
+External S3 API Route (`s4-api`) is disabled by default (`aws-compatible-storage.route.s3Api.enabled: false`).
 
 ### Prerequisites
 
@@ -109,7 +121,7 @@ The steps assume the following products and tools are already available on the c
 5. Authorino (typically installed with OpenShift AI / Service Mesh)
 6. Helm 3.x installed locally
 7. `oc` CLI installed and authenticated
-8. The `eyelevel` project/namespace does not already exist
+8. The `groundx` project/namespace does not already exist
 
 > [!NOTE]
 > **GPU is optional.** Default GroundX inference uses CPU. Install the Node Feature Discovery and NVIDIA GPU operators only if you enable GPU inference (see [Technical details](#gpu-configuration-for-groundx-inference)).
@@ -141,7 +153,7 @@ Edit `helm/billing-workloads/secret.yaml` and set at least these keys under `gro
 > [!IMPORTANT]
 > **`GROUNDX_ADMIN_API_KEY` can be any UUID you choose** — it does not come from GroundX or another provider. Pick any value in UUID format (for example `00000000-0000-0000-0000-000000000001`) and use the same value consistently. Do **not** confuse it with `GROUNDX_AGENT_API_KEY`, which must be a real OpenAI-compatible API key.
 
-No shell environment variables are required for install. Helm merges `secret.yaml` into the chart and creates the `eyelevel-secret-credentials` Kubernetes Secret.
+No shell environment variables are required for install. Helm merges `secret.yaml` into the chart and creates the `groundx-secret-credentials` Kubernetes Secret.
 
 > [!NOTE]
 > `helm/billing-operators/secret.yaml` is **NOT OPTIONAL**.
@@ -164,11 +176,11 @@ make -C helm install
 1. Open the Streamlit frontend route in the OpenShift console (**Networking → Routes**), or:
 
 ```bash
-oc get route -n eyelevel -l app.kubernetes.io/component=frontend \
+oc get route -n groundx -l app.kubernetes.io/component=frontend \
   -o jsonpath='https://{.items[0].spec.host}{"\n"}'
 ```
 
-The URL looks like `https://billing-workloads-frontend-eyelevel.<cluster_domain>/`.
+The URL looks like `https://billing-workloads-frontend-groundx.<cluster_domain>/`.
 
 2. Follow the [Data Extraction UI walkthrough](#data-extraction-ui-recommended) below to run extraction in the app.
 
@@ -177,7 +189,7 @@ The URL looks like `https://billing-workloads-frontend-eyelevel.<cluster_domain>
 ### Monitor deployment
 
 ```bash
-oc get pods -n eyelevel
+oc get pods -n groundx
 ```
 
 All pods should reach `Running` (or `Completed` for one-shot Jobs).
@@ -187,23 +199,17 @@ All pods should reach `Running` (or `Completed` for one-shot Jobs).
 Remove the deployment using the Makefile:
 
 ```bash
-# From the repo root — uninstalls both charts and deletes the eyelevel project
+# From the repo root — uninstalls both charts and deletes the groundx project
 make -C helm uninstall
 ```
 
-This uninstalls the workloads chart first (clearing CRs and finalizers), then the operators chart, then deletes the `eyelevel` project.
+This uninstalls the workloads chart first (clearing CRs and finalizers), then the operators chart, then deletes the `groundx` project.
 
 If the project remains, remove it manually:
 
 ```bash
-oc delete project eyelevel
+oc delete project groundx
 ```
-
-## References
-
-* GroundX documentation [v2.9](https://docs.eyelevel.ai/documentation/fundamentals/welcome)
-* Red Hat OpenShift AI documentation [v3.4](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.4/)
-* [Red Hat OpenShift documentation](https://docs.redhat.com/en/documentation/openshift_container_platform)
 
 ## Demo billing extraction
 
@@ -270,6 +276,14 @@ ranker:
 ```
 
 To enable GPU inference, set `nvidia.com/gpu` to `'1'` and `deviceType` to `cuda` (for ranker; layout follows the same pattern). Use a GPU with roughly 24 GB of memory (for example NVIDIA A10, L40S, or A100). See the comments in `helm/billing-workloads/values.yaml` for the full GPU resource blocks. Nodes labeled for GroundX (`gpuLayout` / `gpuRanker`) must have an NVIDIA GPU available, and the NVIDIA GPU operator must be installed.
+
+## References
+
+- [GroundX documentation](https://docs.eyelevel.ai/documentation/fundamentals/welcome)
+- [aws-compatible-storage Helm chart (ai-architecture-charts)](https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/aws-compatible-storage)
+- [S4 (Super Simple Storage Service)](https://github.com/rh-aiservices-bu/s4)
+- OpenShift AI documentation [v3.4](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.4/)
+- [Red Hat OpenShift documentation](https://docs.redhat.com/en/documentation/openshift_container_platform)
 
 ## Tags
 
